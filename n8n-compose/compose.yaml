@@ -16,8 +16,8 @@ services:
       - N8N_SECURE_COOKIE=false
       - NODE_ENV=production
       - WEBHOOK_URL=https://localhost:5678
-      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
-      - TZ=${GENERIC_TIMEZONE}
+      - GENERIC_TIMEZONE= Asia/Kuala_Lumpur
+      - TZ= Asia/Kuala_Lumpur
       - N8N_ALLOW_EXECUTE_COMMAND=true
       - N8N_ENABLE_NODE_DEV=true
       - NODES_EXCLUDE="[\"n8n-nodes-base.executeCommand\"]"
