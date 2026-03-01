@@ -1,0 +1,353 @@
+{
+  "name": "aic-chutes.ai",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -672,
+        192
+      ],
+      "id": "92b00d55-0c84-4cab-8f58-047d7abd5ef6",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "chuteUrl": "https://chutes-unsloth-mistral-nemo-instruct-2407.chutes.ai",
+        "prompt": "You are a professional children's storyteller. Based on the user prompt: 'Write a happy story about robot', write a short, engaging story (approx. 120 words). \n\nReturn ONLY a raw JSON object. Do NOT include markdown code blocks (```json), do NOT include a preamble, and do NOT include any conversational text.\n\nSchema:\n{\n\"story_text\": \"...\",\n\"visual_summary\": \"...\"\n}",
+        "additionalOptions": {}
+      },
+      "type": "n8n-nodes-chutes.chutes",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        192
+      ],
+      "id": "1bb1184d-aa8a-4a51-9b35-813b1624a2fb",
+      "name": "Generate text completion",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "maxTries": 2,
+      "credentials": {
+        "chutesApi": {
+          "id": "JYxwJ46hBNL87nzx",
+          "name": "Chutes account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the raw content string from the LLM output you provided\nconst json_str = $input.first().json.choices[0].message.content;\n\ntry {\n  // Parse the string into a real JSON object\n  const data = JSON.parse(json_str);\n  return {\n    visual_summary: data.visual_summary,\n    story_text: data.story_text\n  };\n} catch (e) {\n  // Fallback if parsing fails\n  return { visual_summary: NaN };\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        192
+      ],
+      "id": "817b5494-c435-42fd-a5fd-93340e299844",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "resource": "imageGeneration",
+        "chuteUrl": "https://chutes-hunyuan-image-3.chutes.ai",
+        "prompt": "=A 4-panel illustrated storyboard page.\n\nThis is NOT a comic book page.\nThere must be NO speech bubbles.\nThere must be NO text.\nThere must be NO captions.\nThere must be NO narration boxes.\nThere must be NO dialogue balloons.\nThere must be NO written words anywhere.\nThere must be NO typography.\n\nEach panel shows only main characters and environment.\n\nVisual storytelling only through:\n- body language\n- facial expression\n- lighting\n- composition\n- atmosphere\n\nBold ink outlines, halftone shading, graphic novel illustration style.\n\nClean white panel borders.\n\nNo graphic design elements except panel frames.\n\nThe panels visually depict this story through action only:\n{{ $json.story_text }}. the text is only for image generation and not used to create the text within the image.\n\nIf any text, speech bubbles, or written elements appear, the image is incorrect and must be regenerated without them.",
+        "additionalOptions": {}
+      },
+      "type": "n8n-nodes-chutes.chutes",
+      "typeVersion": 1,
+      "position": [
+        0,
+        192
+      ],
+      "id": "c473b769-d156-4320-93aa-73173e386e97",
+      "name": "Generate images",
+      "credentials": {
+        "chutesApi": {
+          "id": "JYxwJ46hBNL87nzx",
+          "name": "Chutes account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "textToSpeech",
+        "chuteUrl": "https://chutes-kokoro.chutes.ai",
+        "text": "={{ $json.story_text }}",
+        "additionalOptions": {}
+      },
+      "type": "n8n-nodes-chutes.chutes",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "aad20ce3-e616-47c9-a466-6b691530a436",
+      "name": "Generate speech",
+      "credentials": {
+        "chutesApi": {
+          "id": "JYxwJ46hBNL87nzx",
+          "name": "Chutes account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "musicGeneration",
+        "chuteUrl": "https://chutes-diffrhythm.chutes.ai",
+        "prompt": "=A 30 second cinematic ambient background score for a story about: {{ $json.story_text }}\nStyle: Melancholic lo-fi electronic, soft lonely piano, slow tempo, ethereal synth pads, glitchy mechanical textures, 65 BPM, somber atmosphere.",
+        "additionalOptions": {
+          "music_duration": "={{ 30 }}"
+        }
+      },
+      "type": "n8n-nodes-chutes.chutes",
+      "typeVersion": 1,
+      "position": [
+        0,
+        384
+      ],
+      "id": "283d415c-04a0-4273-ac71-4c24f90fc41d",
+      "name": "Generate music",
+      "credentials": {
+        "chutesApi": {
+          "id": "JYxwJ46hBNL87nzx",
+          "name": "Chutes account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "ffmpeg -y -loop 1 -framerate 1 -i /files/image.png \\\n-i /files/speech.mp3 \\\n-i /files/music.wav \\\n-filter_complex \"[1:a]volume=2.5[v]; [2:a]volume=0.3[m]; [v][m]amix=inputs=2:duration=first:dropout_transition=0[a]\" \\\n-map 0:v -map \"[a]\" \\\n-c:v libx264 -preset ultrafast -tune stillimage \\\n-c:a aac -b:a 192k -ac 2 -ar 44100 \\\n-pix_fmt yuv420p -shortest /files/final_story.mp4"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        672,
+        192
+      ],
+      "id": "5ca9aedd-c2be-425f-a43e-12588dd17574",
+      "name": "Execute Command"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        448,
+        176
+      ],
+      "id": "2a3c2a4e-f869-4bea-af6a-08c1195352c5",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/files/speech.mp3",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "13faf00c-64d3-4c06-ae34-1e9c241a3e3e",
+      "name": "Read/Write Files from Disk3"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/files/image.png",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        224,
+        192
+      ],
+      "id": "40312446-4d08-4556-bc50-eff82e75d874",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/files/music.wav",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        224,
+        384
+      ],
+      "id": "81f77e6f-2b94-4c8c-8bfe-71ea9986bf45",
+      "name": "Read/Write Files from Disk4"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/final_story.mp4",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        880,
+        192
+      ],
+      "id": "e1cdc129-49e3-48b6-800c-b88377bb8b61",
+      "name": "Read Final-story.mp4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Generate text completion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate text completion": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Generate images",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate speech",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate music",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate images": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate speech": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate music": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Execute Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk3": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk4": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Execute Command": {
+      "main": [
+        [
+          {
+            "node": "Read Final-story.mp4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "eb1986f4-d14f-4a09-886c-ac5c993fb02b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e361c16ad80ea936fab3d0367fefdcfc4d8d588a0934f587ad5e654e6aea1420"
+  },
+  "id": "qyyT1Yi6nMrEjjfR",
+  "tags": []
+}
