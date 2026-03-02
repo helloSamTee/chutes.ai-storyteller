@@ -9,61 +9,106 @@
         0,
         0
       ],
-      "id": "ff64f0e5-05ec-4e5f-947e-8d21bcfca66e",
+      "id": "d56bd9ea-fc32-4c74-8af0-ab5815a76095",
       "name": "When clicking ‘Execute workflow’"
     },
     {
       "parameters": {
-        "chuteUrl": "https://chutes-unsloth-mistral-nemo-instruct-2407.chutes.ai",
-        "prompt": "You are a professional children's storyteller. Based on the user prompt: 'Write a sad story about robot', write a short, engaging story (approx. 150 words). \n\nReturn ONLY a raw JSON object. Do NOT include markdown code blocks (```json), do NOT include a preamble, and do NOT include any conversational text.\n\nSchema:\n{\n\"story_text\": \"...\"\n}",
+        "chuteUrl": "https://chutes-openai-gpt-oss-120b-tee.chutes.ai",
+        "prompt": "You are a professional children's storyteller. Based on the user prompt: 'a dog with its favourite bone', write a short, engaging story (approx. 120 words). \n\nReturn ONLY a raw JSON object. Do NOT include markdown code blocks (```json), do NOT include a preamble, and do NOT include any conversational text.\n\nSchema:\n{\n\"story_text\": \"...\",\n\"visual_summary\": \"...\"\n}",
         "additionalOptions": {}
       },
       "type": "n8n-nodes-chutes.chutes",
       "typeVersion": 1,
       "position": [
-        224,
+        208,
         0
       ],
-      "id": "41cdcaac-9b1b-4285-96d2-b6945e2b009c",
+      "id": "aada11f7-8c11-479e-ac3b-2144cd751f92",
       "name": "Generate text completion",
       "credentials": {
         "chutesApi": {
-          "id": "w36jg0DdXE245uuw",
+          "id": "BozbtcEqz5lgo0Xe",
           "name": "Chutes account"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "// Get the raw content string from the LLM output you provided\nconst json_str = $input.first().json.choices[0].message.content;\n\ntry {\n  // Parse the string into a real JSON object\n  const data = JSON.parse(json_str);\n  return {\n    story_text: data.story_text\n  };\n} catch (e) {\n  // Fallback if parsing fails\n  return { visual_summary: NaN };\n}"
+        "jsCode": "// Get the raw content string from the LLM output you provided\nconst json_str = $input.first().json.choices[0].message.content;\n\ntry {\n  // Parse the string into a real JSON object\n  const data = JSON.parse(json_str);\n  return {\n    visual_summary: data.visual_summary,\n    story_text: data.story_text\n  };\n} catch (e) {\n  // Fallback if parsing fails\n  return { visual_summary: NaN };\n}"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        448,
+        416,
         0
       ],
-      "id": "f0d7c914-1aa6-44af-adb2-dfb34fc1132e",
+      "id": "fec0bedc-472b-4acb-bc51-08927d9de73c",
       "name": "Code in JavaScript"
     },
     {
       "parameters": {
         "resource": "imageGeneration",
-        "chuteUrl": "https://chutes-qwen-image-2512.chutes.ai",
-        "prompt": "=A sequential comic book page layout, graphic novel art style with bold ink outlines and halftone color dots. The image is divided into 4 distinct, clean panels showing a narrative progression. Visual storytelling only. **No text, no speech bubbles, no captions, and no dialogue.** The panels illustrate the story flow based on this description: {{ $json.story_text }}. The art is expressive, hand-drawn, and focuses on character action and environmental atmosphere.",
+        "chuteUrl": "https://chutes-z-image-turbo.chutes.ai",
+        "prompt": "=analyse this source (https://id.pinterest.com/pin/428545720789301634/) and (https://id.pinterest.com/pin/428545720789301212)\nAfter analysing it using that style, draw this complete story just like a comic with minimum of 10 panels without any single texts: {{ $json.story_text }}",
         "additionalOptions": {}
       },
       "type": "n8n-nodes-chutes.chutes",
       "typeVersion": 1,
       "position": [
-        672,
-        0
+        816,
+        -176
       ],
-      "id": "23d784e2-b256-4d59-86dc-acb1573b7f6b",
+      "id": "9368781f-cbc8-447e-aa12-474fcb43a3f7",
       "name": "Generate images",
       "credentials": {
         "chutesApi": {
-          "id": "w36jg0DdXE245uuw",
+          "id": "BozbtcEqz5lgo0Xe",
+          "name": "Chutes account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "musicGeneration",
+        "chuteUrl": "https://chutes-diffrhythm.chutes.ai",
+        "prompt": "=A 30 second cinematic ambient background score for a story about: {{ $json.story_text }}\nStyle: Melancholic lo-fi electronic, soft lonely piano, slow tempo, ethereal synth pads, glitchy mechanical textures, 65 BPM, somber atmosphere.",
+        "additionalOptions": {}
+      },
+      "type": "n8n-nodes-chutes.chutes",
+      "typeVersion": 1,
+      "position": [
+        816,
+        0
+      ],
+      "id": "e1c323fb-3ac7-447b-92fd-816e0127ff78",
+      "name": "Generate music",
+      "credentials": {
+        "chutesApi": {
+          "id": "BozbtcEqz5lgo0Xe",
+          "name": "Chutes account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "textToSpeech",
+        "chuteUrl": "https://chutes-kokoro.chutes.ai",
+        "text": "={{ $json.story_text }}",
+        "voice": "af_bella",
+        "additionalOptions": {}
+      },
+      "type": "n8n-nodes-chutes.chutes",
+      "typeVersion": 1,
+      "position": [
+        816,
+        160
+      ],
+      "id": "fcc46ec0-81d9-4bd8-8be7-3dfc9b53c46f",
+      "name": "Generate speech",
+      "credentials": {
+        "chutesApi": {
+          "id": "BozbtcEqz5lgo0Xe",
           "name": "Chutes account"
         }
       }
@@ -72,77 +117,18 @@
       "parameters": {
         "operation": "write",
         "fileName": "/tmp/image.png",
-        "options": {}
+        "options": {
+          "append": false
+        }
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        896,
-        0
+        1024,
+        -176
       ],
-      "id": "af12a6e8-643a-4f8f-9809-5c8bf24dc990",
+      "id": "cda72479-9bcd-4770-bb69-87f664d4ff8e",
       "name": "Read/Write Files from Disk"
-    },
-    {
-      "parameters": {
-        "resource": "textToSpeech",
-        "chuteUrl": "https://chutes-kokoro.chutes.ai",
-        "text": "={{ $json.story_text }}",
-        "additionalOptions": {}
-      },
-      "type": "n8n-nodes-chutes.chutes",
-      "typeVersion": 1,
-      "position": [
-        672,
-        -192
-      ],
-      "id": "38bd79a0-9622-46df-babc-6e5a2cd8300c",
-      "name": "Generate speech",
-      "credentials": {
-        "chutesApi": {
-          "id": "w36jg0DdXE245uuw",
-          "name": "Chutes account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "write",
-        "fileName": "/tmp/speech.mp3",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1.1,
-      "position": [
-        896,
-        -192
-      ],
-      "id": "e418aba8-c5cc-4338-ad08-77b76f2143a9",
-      "name": "Read/Write Files from Disk1"
-    },
-    {
-      "parameters": {
-        "resource": "musicGeneration",
-        "chuteUrl": "https://chutes-diffrhythm.chutes.ai",
-        "prompt": "=A 30 second cinematic ambient background score for a story about: {{ $json.story_text }}\nStyle: Melancholic lo-fi electronic, soft lonely piano, slow tempo, ethereal synth pads, glitchy mechanical textures, 65 BPM, somber atmosphere.",
-        "additionalOptions": {
-          "music_duration": "={{ 30 }}"
-        }
-      },
-      "type": "n8n-nodes-chutes.chutes",
-      "typeVersion": 1,
-      "position": [
-        672,
-        192
-      ],
-      "id": "5ea73cb0-24c3-4887-9372-c36fba238f99",
-      "name": "Generate music",
-      "credentials": {
-        "chutesApi": {
-          "id": "w36jg0DdXE245uuw",
-          "name": "Chutes account"
-        }
-      }
     },
     {
       "parameters": {
@@ -153,24 +139,26 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        896,
-        192
+        1024,
+        0
       ],
-      "id": "f0d9c618-8745-4ab8-8587-8ae255341832",
-      "name": "Read/Write Files from Disk2"
+      "id": "b44c9454-912a-4995-b0ed-32b9986da459",
+      "name": "Read/Write Files from Disk1"
     },
     {
       "parameters": {
-        "command": "ffmpeg -y -loop 1 -framerate 1 -i /tmp/image.png \\\n-i /tmp/speech.mp3 \\\n-i /tmp/music.wav \\\n-filter_complex \"[1:a]volume=2.5[v]; [2:a]volume=0.3[m]; [v][m]amix=inputs=2:duration=first:dropout_transition=0[a]\" \\\n-map 0:v -map \"[a]\" \\\n-c:v libx264 -preset ultrafast -tune stillimage \\\n-c:a aac -b:a 192k -ac 2 -ar 44100 \\\n-pix_fmt yuv420p -shortest /tmp/final_story.mp4"
+        "operation": "write",
+        "fileName": "/tmp/speech.mp3",
+        "options": {}
       },
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
       "position": [
-        1344,
-        0
+        1024,
+        160
       ],
-      "id": "3f9bebda-4e9c-40a1-83dd-a87822ea157b",
-      "name": "Execute Command"
+      "id": "7f197d00-eba6-4472-a30f-7f54802bfd3e",
+      "name": "Read/Write Files from Disk2"
     },
     {
       "parameters": {
@@ -179,11 +167,24 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        1120,
+        1328,
         -16
       ],
-      "id": "e43876be-c223-4668-8fab-d80a275e67e7",
+      "id": "02843997-dac6-426f-8c79-c3658024f83e",
       "name": "Merge"
+    },
+    {
+      "parameters": {
+        "command": "ffmpeg -y -loop 1 -framerate 1 -i /tmp/image.png \\\n-i /tmp/speech.mp3 \\\n-i /tmp/music.wav \\\n-filter_complex \"[1:a]volume=2.5[v]; [2:a]volume=0.3[m]; [v][m]amix=inputs=2:duration=first:dropout_transition=0[a]\" \\\n-map 0:v -map \"[a]\" \\\n-c:v libx264 -preset ultrafast -tune stillimage \\\n-c:a aac -b:a 192k -ac 2 -ar 44100 \\\n-pix_fmt yuv420p -shortest /tmp/final_story.mp4"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1536,
+        0
+      ],
+      "id": "a87e3648-73a4-4285-9ee0-ca570b1028ba",
+      "name": "Execute Command"
     }
   ],
   "pinData": {},
@@ -219,12 +220,23 @@
             "index": 0
           },
           {
-            "node": "Generate speech",
+            "node": "Generate music",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Generate music",
+            "node": "Generate speech",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate music": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk1",
             "type": "main",
             "index": 0
           }
@@ -246,17 +258,6 @@
       "main": [
         [
           {
-            "node": "Read/Write Files from Disk1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Generate music": {
-      "main": [
-        [
-          {
             "node": "Read/Write Files from Disk2",
             "type": "main",
             "index": 0
@@ -270,7 +271,7 @@
           {
             "node": "Merge",
             "type": "main",
-            "index": 1
+            "index": 0
           }
         ]
       ]
@@ -281,7 +282,7 @@
           {
             "node": "Merge",
             "type": "main",
-            "index": 0
+            "index": 1
           }
         ]
       ]
@@ -315,11 +316,11 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "81995c3b-4b28-4205-beb1-888c01a2079c",
+  "versionId": "c066a515-c4b7-485c-bd95-c310f3505713",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "dc35d562c16979069f790f8af4d6715754c873c2fbab43e9ce9ca3956e440221"
+    "instanceId": "76609d6d1b00add3e2f5fa83a9f062e99620332f098db1c9a046632c5ad5d145"
   },
-  "id": "oHXvv20tgcEXAFND",
+  "id": "LyZu3LmL2Z4HEtcX",
   "tags": []
 }
