@@ -6,82 +6,70 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        0,
-        0
+        -672,
+        192
       ],
-      "id": "ff64f0e5-05ec-4e5f-947e-8d21bcfca66e",
+      "id": "166611c2-20c3-4483-a4ee-da2d68ca6723",
       "name": "When clicking ‘Execute workflow’"
     },
     {
       "parameters": {
         "chuteUrl": "https://chutes-unsloth-mistral-nemo-instruct-2407.chutes.ai",
-        "prompt": "You are a professional children's storyteller. Based on the user prompt: 'Write a sad story about robot', write a short, engaging story (approx. 150 words). \n\nReturn ONLY a raw JSON object. Do NOT include markdown code blocks (```json), do NOT include a preamble, and do NOT include any conversational text.\n\nSchema:\n{\n\"story_text\": \"...\"\n}",
+        "prompt": "You are a professional children's storyteller. Based on the user prompt: 'Write a happy story about robot', write a short, engaging story (approx. 120 words). \n\nReturn ONLY a raw JSON object. Do NOT include markdown code blocks (```json), do NOT include a preamble, and do NOT include any conversational text.\n\nSchema:\n{\n\"story_text\": \"...\",\n\"visual_summary\": \"...\"\n}",
         "additionalOptions": {}
       },
       "type": "n8n-nodes-chutes.chutes",
       "typeVersion": 1,
       "position": [
-        224,
-        0
+        -448,
+        192
       ],
-      "id": "41cdcaac-9b1b-4285-96d2-b6945e2b009c",
+      "id": "9dc1b6d1-98a2-47b4-987b-53ecaaf42d81",
       "name": "Generate text completion",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "maxTries": 2,
       "credentials": {
         "chutesApi": {
-          "id": "w36jg0DdXE245uuw",
+          "id": "OuZ824WcDoSWUTDM",
           "name": "Chutes account"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "// Get the raw content string from the LLM output you provided\nconst json_str = $input.first().json.choices[0].message.content;\n\ntry {\n  // Parse the string into a real JSON object\n  const data = JSON.parse(json_str);\n  return {\n    story_text: data.story_text\n  };\n} catch (e) {\n  // Fallback if parsing fails\n  return { visual_summary: NaN };\n}"
+        "jsCode": "// Get the raw content string from the LLM output you provided\nconst json_str = $input.first().json.choices[0].message.content;\n\ntry {\n  // Parse the string into a real JSON object\n  const data = JSON.parse(json_str);\n  return {\n    visual_summary: data.visual_summary,\n    story_text: data.story_text\n  };\n} catch (e) {\n  // Fallback if parsing fails\n  return { visual_summary: NaN };\n}"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        448,
-        0
+        -224,
+        192
       ],
-      "id": "f0d7c914-1aa6-44af-adb2-dfb34fc1132e",
+      "id": "cfa1f986-0477-4ffc-a8d5-7e00f449d2dd",
       "name": "Code in JavaScript"
     },
     {
       "parameters": {
         "resource": "imageGeneration",
-        "chuteUrl": "https://chutes-qwen-image-2512.chutes.ai",
-        "prompt": "=A sequential comic book page layout, graphic novel art style with bold ink outlines and halftone color dots. The image is divided into 4 distinct, clean panels showing a narrative progression. Visual storytelling only. **No text, no speech bubbles, no captions, and no dialogue.** The panels illustrate the story flow based on this description: {{ $json.story_text }}. The art is expressive, hand-drawn, and focuses on character action and environmental atmosphere.",
+        "chuteUrl": "https://chutes-hunyuan-image-3.chutes.ai",
+        "prompt": "=A 4-panel illustrated storyboard page.\n\nThis is NOT a comic book page.\nThere must be NO speech bubbles.\nThere must be NO text.\nThere must be NO captions.\nThere must be NO narration boxes.\nThere must be NO dialogue balloons.\nThere must be NO written words anywhere.\nThere must be NO typography.\n\nEach panel shows only main characters and environment.\n\nVisual storytelling only through:\n- body language\n- facial expression\n- lighting\n- composition\n- atmosphere\n\nBold ink outlines, halftone shading, graphic novel illustration style.\n\nClean white panel borders.\n\nNo graphic design elements except panel frames.\n\nThe panels visually depict this story through action only:\n{{ $json.story_text }}. the text is only for image generation and not used to create the text within the image.\n\nIf any text, speech bubbles, or written elements appear, the image is incorrect and must be regenerated without them.",
         "additionalOptions": {}
       },
       "type": "n8n-nodes-chutes.chutes",
       "typeVersion": 1,
       "position": [
-        672,
-        0
+        0,
+        192
       ],
-      "id": "23d784e2-b256-4d59-86dc-acb1573b7f6b",
+      "id": "0f1dbef2-c391-4e88-b071-5d888b216297",
       "name": "Generate images",
       "credentials": {
         "chutesApi": {
-          "id": "w36jg0DdXE245uuw",
+          "id": "OuZ824WcDoSWUTDM",
           "name": "Chutes account"
         }
       }
-    },
-    {
-      "parameters": {
-        "operation": "write",
-        "fileName": "/tmp/image.png",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1.1,
-      "position": [
-        896,
-        0
-      ],
-      "id": "af12a6e8-643a-4f8f-9809-5c8bf24dc990",
-      "name": "Read/Write Files from Disk"
     },
     {
       "parameters": {
@@ -93,32 +81,17 @@
       "type": "n8n-nodes-chutes.chutes",
       "typeVersion": 1,
       "position": [
-        672,
-        -192
+        0,
+        0
       ],
-      "id": "38bd79a0-9622-46df-babc-6e5a2cd8300c",
+      "id": "52169ca7-4a9c-4416-96b4-4d4c27719660",
       "name": "Generate speech",
       "credentials": {
         "chutesApi": {
-          "id": "w36jg0DdXE245uuw",
+          "id": "OuZ824WcDoSWUTDM",
           "name": "Chutes account"
         }
       }
-    },
-    {
-      "parameters": {
-        "operation": "write",
-        "fileName": "/tmp/speech.mp3",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1.1,
-      "position": [
-        896,
-        -192
-      ],
-      "id": "e418aba8-c5cc-4338-ad08-77b76f2143a9",
-      "name": "Read/Write Files from Disk1"
     },
     {
       "parameters": {
@@ -132,44 +105,29 @@
       "type": "n8n-nodes-chutes.chutes",
       "typeVersion": 1,
       "position": [
-        672,
-        192
+        0,
+        384
       ],
-      "id": "5ea73cb0-24c3-4887-9372-c36fba238f99",
+      "id": "13692dfa-5574-41c3-a8e2-0be0ddc6580a",
       "name": "Generate music",
       "credentials": {
         "chutesApi": {
-          "id": "w36jg0DdXE245uuw",
+          "id": "OuZ824WcDoSWUTDM",
           "name": "Chutes account"
         }
       }
     },
     {
       "parameters": {
-        "operation": "write",
-        "fileName": "/tmp/music.wav",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1.1,
-      "position": [
-        896,
-        192
-      ],
-      "id": "f0d9c618-8745-4ab8-8587-8ae255341832",
-      "name": "Read/Write Files from Disk2"
-    },
-    {
-      "parameters": {
-        "command": "ffmpeg -y -loop 1 -framerate 1 -i /tmp/image.png \\\n-i /tmp/speech.mp3 \\\n-i /tmp/music.wav \\\n-filter_complex \"[1:a]volume=2.5[v]; [2:a]volume=0.3[m]; [v][m]amix=inputs=2:duration=first:dropout_transition=0[a]\" \\\n-map 0:v -map \"[a]\" \\\n-c:v libx264 -preset ultrafast -tune stillimage \\\n-c:a aac -b:a 192k -ac 2 -ar 44100 \\\n-pix_fmt yuv420p -shortest /tmp/final_story.mp4"
+        "command": "ffmpeg -y -loop 1 -framerate 1 -i /files/image.png \\\n-i /files/speech.mp3 \\\n-i /files/music.wav \\\n-filter_complex \"[1:a]volume=2.5[v]; [2:a]volume=0.3[m]; [v][m]amix=inputs=2:duration=first:dropout_transition=0[a]\" \\\n-map 0:v -map \"[a]\" \\\n-c:v libx264 -preset ultrafast -tune stillimage \\\n-c:a aac -b:a 192k -ac 2 -ar 44100 \\\n-pix_fmt yuv420p -shortest /files/final_story.mp4"
       },
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        1344,
-        0
+        672,
+        192
       ],
-      "id": "3f9bebda-4e9c-40a1-83dd-a87822ea157b",
+      "id": "87a3eb25-bd4d-4a73-98ac-25c26de30520",
       "name": "Execute Command"
     },
     {
@@ -179,11 +137,70 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        1120,
-        -16
+        448,
+        176
       ],
-      "id": "e43876be-c223-4668-8fab-d80a275e67e7",
+      "id": "268a4921-e6b6-477f-83a9-28fdc69a6292",
       "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/files/speech.mp3",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "795a8de8-eca4-4066-b137-746506346f97",
+      "name": "Read/Write Files from Disk3"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/files/image.png",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        224,
+        192
+      ],
+      "id": "a0cffb5b-673f-4192-826f-5779bdf2f4c5",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/files/music.wav",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        224,
+        384
+      ],
+      "id": "1ddfa788-5093-4d48-9958-bb9f48d2ab89",
+      "name": "Read/Write Files from Disk4"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/final_story.mp4",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        880,
+        192
+      ],
+      "id": "eaf9a57f-6401-47c2-a5bc-486cbfdda086",
+      "name": "Read Final-story.mp4"
     }
   ],
   "pinData": {},
@@ -246,7 +263,7 @@
       "main": [
         [
           {
-            "node": "Read/Write Files from Disk1",
+            "node": "Read/Write Files from Disk3",
             "type": "main",
             "index": 0
           }
@@ -257,7 +274,29 @@
       "main": [
         [
           {
-            "node": "Read/Write Files from Disk2",
+            "node": "Read/Write Files from Disk4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Execute Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk3": {
+      "main": [
+        [
+          {
+            "node": "Merge",
             "type": "main",
             "index": 0
           }
@@ -275,18 +314,7 @@
         ]
       ]
     },
-    "Read/Write Files from Disk1": {
-      "main": [
-        [
-          {
-            "node": "Merge",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Read/Write Files from Disk2": {
+    "Read/Write Files from Disk4": {
       "main": [
         [
           {
@@ -297,11 +325,11 @@
         ]
       ]
     },
-    "Merge": {
+    "Execute Command": {
       "main": [
         [
           {
-            "node": "Execute Command",
+            "node": "Read Final-story.mp4",
             "type": "main",
             "index": 0
           }
@@ -311,15 +339,13 @@
   },
   "active": false,
   "settings": {
-    "executionOrder": "v1",
-    "binaryMode": "separate",
-    "availableInMCP": false
+    "executionOrder": "v1"
   },
-  "versionId": "81995c3b-4b28-4205-beb1-888c01a2079c",
+  "versionId": "78c85223-3c13-4b69-8666-e899b1cc087a",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "dc35d562c16979069f790f8af4d6715754c873c2fbab43e9ce9ca3956e440221"
+    "instanceId": "2584e22791d1f15c10863354a901735456d3405d7c6d88785dbf6149111584cc"
   },
-  "id": "oHXvv20tgcEXAFND",
+  "id": "dUgSEtawsB7OSRcb",
   "tags": []
 }

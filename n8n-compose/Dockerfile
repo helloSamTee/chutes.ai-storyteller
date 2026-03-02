@@ -15,9 +15,8 @@ RUN ARCH=$(uname -m) && \
 RUN apk add --no-cache python3 py3-pip py3-virtualenv ffmpeg
 
 RUN mkdir -p /home/node/.n8n/python && \
-    mkdir -p /home/node/.n8n/output && \
     python3 -m venv /home/node/.n8n/python/venv && \
-    chown -R node:node /home/node/.n8n
+    mkdir -p /files && \
+    chown -R node:node /files
 
-    
 USER node
